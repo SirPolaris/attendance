@@ -62,39 +62,39 @@ def read():
 
 def readNfc(action):
     if(action==55):#7 - Incomming
-        onScreen("Prichod...")
-        display.lcdWriteFirstLine("Prichod...")
-        display.lcdWriteSecondLine("Prilozte kartu")
+        onScreen("Incomming...")
+        display.lcdWriteFirstLine("Incomming...")
+        display.lcdWriteSecondLine("Annex card")
         cardId=read()
         logging.info("Incomming - %s",cardId)
         name = mysql.insertReading(cardId,Actions.incomming)
         display.lcdWriteSecondLine(name)
     if(action==57):#9 - outcomming
-        onScreen("Odchod...")
-        display.lcdWriteFirstLine("Odchod...")
-        display.lcdWriteSecondLine("Prilozte kartu")
+        onScreen("Exiting...")
+        display.lcdWriteFirstLine("Exiting...")
+        display.lcdWriteSecondLine("Annex card")
         cardId=read()
         logging.info("Outcomming - %s",cardId)
         name = mysql.insertReading(cardId,Actions.outcomming)
         display.lcdWriteSecondLine(name)
     if(action==49):#1 - break start
-        onScreen("Zacatek pauzy...")
-        display.lcdWriteFirstLine("Pauza zacatek...")
-        display.lcdWriteSecondLine("Prilozte kartu")
+        onScreen("Commence break...")
+        display.lcdWriteFirstLine("Break start...")
+        display.lcdWriteSecondLine("Annex card")
         cardId=read()
         logging.info("Break start - %s",cardId)
         name = mysql.insertReading(cardId,Actions.breakstart)
         display.lcdWriteSecondLine(name)
     if(action==51):#3 - break end
-        onScreen("Konec pauzy...")
-        display.lcdWriteFirstLine("Pauza konec...")
-        display.lcdWriteSecondLine("Prilozte kartu")
+        onScreen("Break is over...")
+        display.lcdWriteFirstLine("Pause end...")
+        display.lcdWriteSecondLine("Annex card")
         cardId=read()
         logging.info("Break end - %s",cardId)
         name = mysql.insertReading(cardId,Actions.breakend)
         display.lcdWriteSecondLine(name)
     if(action==53):#5 - Deletion of last inserted action
-        onScreen("Smazat posledni akci...")
+        onScreen("Delete last action...")
         display.lcdWriteFirstLine("Mazani...")
         display.lcdWriteSecondLine("")
         cardId=read()
@@ -102,30 +102,30 @@ def readNfc(action):
         (lastTime,lastAction)=mysql.getLastReading(cardId) or (None, None)
 
         if(lastTime == None or lastAction == None):
-            display.lcdWriteSecondLine("Akce nenalezena")
+            display.lcdWriteSecondLine("Action not found")
             logging.info("Action not found")
             time.sleep(1)
 
         else:
-            display.lcdWriteFirstLine("Smazat akci?")
+            display.lcdWriteFirstLine("Delete event?")
             if(lastAction==Actions.incomming):
-                display.lcdWriteSecondLine("Prichod")
+                display.lcdWriteSecondLine("Arrival")
             elif(lastAction==Actions.outcomming):
-                display.lcdWriteSecondLine("Odchod")
+                display.lcdWriteSecondLine("Outgoing")
             elif(lastAction==Actions.breakstart):
-                display.lcdWriteSecondLine("Pauza zacatek")
+                display.lcdWriteSecondLine("Break start")
             elif(lastAction==Actions.breakend):
-                display.lcdWriteSecondLine("Pauza konec")
+                display.lcdWriteSecondLine("Break end")
             a=getOneKey()
             if(a==49):#1
-                onScreen("Mazu")
+                onScreen("Delete")
                 logging.info(" - Deleting action %s (cas: %s)",lastAction, lastTime)
                 mysql.deleteLastReading(cardId)
-                display.lcdWriteSecondLine("Smazano!")
+                display.lcdWriteSecondLine("Deleted!")
             else:
-                onScreen("Nemazu")
+                onScreen("Delete Cancel")
                 logging.info(" - Deleting canceled")
-                display.lcdWriteSecondLine("Nemazu nic!")
+                display.lcdWriteSecondLine("Do not delete anything!")
 
     #Sleep a little, so the information about last action on display is readable by humans
     time.sleep(1)
@@ -180,7 +180,7 @@ def main():
         initGpio()
         display.init()
         while True:
-            display.lcdWriteSecondLine("Zvolte akci...")
+            display.lcdWriteSecondLine("Choose an action...")
             global displayTime
             displayTime=True
             #Start new thread to show curent datetime on display
