@@ -150,6 +150,7 @@ def beepAsync():
 #character without hitting enter  each time
 fd = sys.stdin.fileno()
 old_settings = termios.tcgetattr(fd)
+
 def getOneKey():
     try:
         tty.setcbreak(sys.stdin.fileno())

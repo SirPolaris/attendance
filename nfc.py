@@ -15,7 +15,6 @@
 #   ----------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
 import MFRC522
-from attendance import onScreen
 
 def readNfc():
     reading = True
@@ -23,7 +22,7 @@ def readNfc():
         MIFAREReader = MFRC522.MFRC522()
 
         #while continue_reading:
-        (status,TagType) = MIFAREReader.MFRC522_Request(MIFAREReader.PICC_REQIDL)
+        (status,TagType) = MIFAREReader.MFRC522_Request(PICC.REQIDL)
 
         #if status == MIFAREReader.MI_OK:
         #    print("Card detected")
