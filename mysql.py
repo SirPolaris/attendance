@@ -31,8 +31,8 @@ def insertReading(tagId,action):
     cur.execute("""INSERT INTO readings (tagId, time, action) VALUES (%s, %s, %s)""",(tagId,currentTime,action))
     db.commit()
     cur.execute("SELECT name,surname FROM users WHERE id = (SELECT userId FROM cards WHERE tagId=%s LIMIT 1)",(tagId))
-    row = cur.fetchone();
-    db.close()
+	row = cur.fetchone()
+	db.close()
     if(row==None):
         return "Neznama karta"
     else:

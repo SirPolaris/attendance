@@ -1,36 +1,41 @@
-#-------------------------------------------------------------------------------
-# Name:        NFC Reader
-# Purpose:
-#
-# Author:      Jakub 'Yim' Dvorak
-#
-# Created:     26.10.2013
-# Copyright:   (c) Jakub Dvorak 2013
-# Licence:
-#   ----------------------------------------------------------------------------
-#   "THE BEER-WARE LICENSE" (Revision 42):
-#   Jakub Dvorak wrote this file. As long as you retain this notice you
-#   can do whatever you want with this stuff. If we meet some day, and you think
-#   this stuff is worth it, you can buy me a beer in return.
-#   ----------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
+# This class is the main interface to MFRC522.py it calls the class and encapsulates the wait and anticollision loop.
+
 import MFRC522
+import time
 
-def readNfc():
-    reading = True
-    while reading:
-        MIFAREReader = MFRC522.MFRC522()
 
-        #while continue_reading:
-        (status,TagType) = MIFAREReader.MFRC522_Request(PICC.REQIDL)
+def readNfc ():
+	reading = True
+	MIFAREReader = MFRC522
 
-        #if status == MIFAREReader.MI_OK:
-        #    print("Card detected")
+	while reading:
+		print("------ Start of loop -------")
+		# Because we import the "Modual" then access the classes, we but it in a
+		# holder to do work. (No Data types!)
 
-        (status,backData) = MIFAREReader.MFRC522_Anticoll()
-        if status == MIFAREReader.MI_OK:
-            #print ("Cislo karty: "+str(backData[0])+","+str(backData[1])+","+str(backData[2])+","+str(backData[3])+","+str(backData[4]))
-            MIFAREReader.AntennaOff()
-            reading=False
-            return str(backData[0])+str(backData[1])+str(backData[2])+str(backData[3])+str(backData[4])
+		#while continue_reading:
+		(status, TagType) = MIFAREReader.MFRC522.MFRC522_Request(MIFAREReader.MFRC522(), MIFAREReader.PICC.REQIDL)
+
+		if status == 0:  # MI.OK
+			print("REQIDL - OK")
+		if status == 1:
+			print("REQIDL - ARGERR")
+		if status == 2:
+			print("REQIDL - DNC")
+
+		(status, backData) = MIFAREReader.MFRC522().MFRC522_Anticoll()
+
+		if status == 0:
+			print("AntiCol - OK")
+		if status == 1:
+			print("AntiCol - ARGERR")
+		if status == 2:
+			print("AntiCol - DNC")
+
+		if status == MIFAREReader.MI.OK:
+			MIFAREReader.MFRC522().AntennaOff()
+			print("DATA:" + backData[0]) + str(backData[1]) + str(backData[2]) + str(backData[3]) + str(backData[4])
+			return str(backData[0]) + str(backData[1]) + str(backData[2]) + str(backData[3]) + str(backData[4])
+
+		time.sleep(4)  # so we can see whats going on
 

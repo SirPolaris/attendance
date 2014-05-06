@@ -47,10 +47,6 @@ class MFRC522:
 	NRSTPD = 22
 	MAX_LEN = 16
 
-	MI.OK = 0
-	MI.NOTAGERR = 1
-	MI.ERR = 2
-
 	Reserved00 = 0x00
 	CommandReg = 0x01
 	CommIEnReg = 0x02
@@ -130,7 +126,7 @@ class MFRC522:
 		self.MFRC522_Init()
 
 	def MFRC522_Reset(self):
-		self.Write_MFRC522(self.CommandReg, self.PCD_RESETPHASE)
+		self.Write_MFRC522(self.CommandReg, PCD.RESETPHASE)
 
 	def Write_MFRC522(self, addr, val):
 		spi.transfer(((addr << 1) & 0x7E, val))
@@ -144,7 +140,7 @@ class MFRC522:
 		self.Write_MFRC522(reg, tmp | mask)
 
 	def ClearBitMask(self, reg, mask):
-		tmp = self.Read_MFRC522(reg);
+		tmp = self.Read_MFRC522(reg)
 		self.Write_MFRC522(reg, tmp & (~mask))
 
 	def AntennaOn(self):
@@ -158,46 +154,54 @@ class MFRC522:
 	def MFRC522_ToCard(self, command, sendData):
 		backData = []
 		backLen = 0
-		status = self.MI.ERR
+		status = MI.ERR
 		irqEn = 0x00
 		waitIRq = 0x00
 		lastBits = None
 		n = 0
 		i = 0
 
-		if command == self.PCD.AUTHENT:
+		if command == PCD.AUTHENT:
 			irqEn = 0x12
 			waitIRq = 0x10
-		if command == self.PCD_TRANSCEIVE:
+
+		if command == PCD.TRANSCEIVE:
 			irqEn = 0x77
 			waitIRq = 0x30
 
 		self.Write_MFRC522(self.CommIEnReg, irqEn | 0x80)
 		self.ClearBitMask(self.CommIrqReg, 0x80)
 		self.SetBitMask(self.FIFOLevelReg, 0x80)
-		self.Write_MFRC522(self.CommandReg, self.PCD.IDLE);
+		self.Write_MFRC522(self.CommandReg, PCD.IDLE)
+
 		while (i < len(sendData)):
 			self.Write_MFRC522(self.FIFODataReg, sendData[i])
 			i = i + 1
+
 		self.Write_MFRC522(self.CommandReg, command)
 
-		if command == self.PCD_TRANSCEIVE:
+		if command == PCD.TRANSCEIVE:
 			self.SetBitMask(self.BitFramingReg, 0x80)
+
 		i = 2000
+
 		while True:
-			n = self.Read_MFRC522(self.CommIrqReg)
+			n = self.Read_MFRC522(self.CommIrqReg)  # Listens to the SPI - for data
 			i = i - 1
-			if ~((i != 0) and ~(n & 0x01) and ~(n & waitIRq)):
+
+			if ~((i != 0) and ~(n & 0x01) and ~(n & waitIRq)):  # Acts on data or time out?
 				break
+
 		self.ClearBitMask(self.BitFramingReg, 0x80)
 
-		if i != 0:
+		if i != 0:  # if we hit 0 - timed out - skip this?
 			if (self.Read_MFRC522(self.ErrorReg) & 0x1B) == 0x00:
-				status = self.MI.OK
-				if n & irqEn & 0x01:
-					status = self.MI.NOTAGERR
+				status = MI.OK
 
-				if command == self.PCD_TRANSCEIVE:
+				if n & irqEn & 0x01:
+					status = MI.NOTAGERR
+
+				if command == PCD.TRANSCEIVE:
 					n = self.Read_MFRC522(self.FIFOLevelReg)
 					lastBits = self.Read_MFRC522(self.ControlReg) & 0x07
 					if lastBits != 0:
@@ -212,9 +216,10 @@ class MFRC522:
 					i = 0
 					while i < n:
 						backData.append(self.Read_MFRC522(self.FIFODataReg))
-						i = i + 1;
+						i = i + 1
 			else:
-				status = self.MI.ERR
+				print("I errored!")
+				status = MI.ERR
 
 		return (status, backData, backLen)
 
@@ -226,11 +231,11 @@ class MFRC522:
 
 		self.Write_MFRC522(self.BitFramingReg, 0x07)
 
-		TagType.append(reqMode);
-		(status, backData, backBits) = self.MFRC522_ToCard(self.PCD_TRANSCEIVE, TagType)
+		TagType.append(reqMode)
+		(status, backData, backBits) = self.MFRC522_ToCard(PCD.TRANSCEIVE, TagType)
 
-		if ((status != self.MI.OK) | (backBits != 0x10)):
-			status = self.MI.ERR
+		if ((status != MI.OK) | (backBits != 0x10)):
+			status = MI.ERR
 
 		return (status, backBits)
 
@@ -243,28 +248,33 @@ class MFRC522:
 
 		self.Write_MFRC522(self.BitFramingReg, 0x00)
 
-		serNum.append(self.PICC.ANTICOLL)
+		# Problem is here
+		serNum.append(PICC.ANTICOLL)
 		serNum.append(0x20)
 
-		(status, backData, backBits) = self.MFRC522_ToCard(self.PCD_TRANSCEIVE, serNum)
+		(status, backData, backBits) = self.MFRC522_ToCard(PCD.TRANSCEIVE, serNum)
+		# Problem is here
 
-		if (status == self.MI.OK):
+		print("MFRC522_Anticoll.Status: " + str(status))
+
+		if (status == MI.OK):
+			print("Anti was good - checking")
 			i = 0
 			if len(backData) == 5:
 				while i < 4:
 					serNumCheck = serNumCheck ^ backData[i]
 					i = i + 1
 				if serNumCheck != backData[i]:
-					status = self.MI.ERR
+					status = MI.ERR
 			else:
-				status = self.MI.ERR
+				status = MI.ERR
 
 		return (status, backData)
 
 	def MFRC522_Init(self):
 		GPIO.output(self.NRSTPD, 1)
 
-		self.MFRC522_Reset();
+		self.MFRC522_Reset()
 
 		self.Write_MFRC522(self.TModeReg, 0x8D)
 		self.Write_MFRC522(self.TPrescalerReg, 0x3E)

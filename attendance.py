@@ -17,10 +17,12 @@
 #   ----------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
+# CLASS NFC does all the heavy lifting, this is just a beauty layer ontop of the code.
+
 import display
 import nfc
 import mysql
-import beeper
+// import beeper
 
 import sys
 import tty
