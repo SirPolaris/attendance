@@ -241,6 +241,17 @@ class MFRC522:
 
 
 	def MFRC522_Anticoll(self):
+		'''
+		In the context of RFID, anti-collision refers to different ways to keep radio waves from one device
+		from interfering with radio waves from another device. RFID readers may make use of anti-collision
+		algorithms to enable a single reader to read more than one tag in the reader's field.
+
+		Tag collision in RFID systems happens when multiple tags are energized by the RFID tag reader simultaneously,
+		and reflect their respective signals back to the reader at the same time. This problem is often seen whenever
+		a large volume of tags must be read together in the same RF field. The reader is unable to differentiate these
+		signals; tag collision confuses the reader.
+		'''
+
 		backData = []
 		serNumCheck = 0
 
