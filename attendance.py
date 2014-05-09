@@ -22,7 +22,7 @@
 import display
 import nfc
 import mysql
-// import beeper
+#import beeper
 
 import sys
 import tty
