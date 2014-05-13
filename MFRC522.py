@@ -8,7 +8,7 @@
 
 import RPi.GPIO as GPIO
 import spi
-import time
+import signal
 
 
 class PCD:
@@ -173,21 +173,16 @@ class MFRC522:
 		self.Write_MFRC522(self.CommIEnReg, irqEn | 0x80)
 		self.ClearBitMask(self.CommIrqReg, 0x80)
 		self.SetBitMask(self.FIFOLevelReg, 0x80)
+
 		self.Write_MFRC522(self.CommandReg, PCD.IDLE)
 
 		# Main writer to the card. Bit by bit send.
-		print('Sending data')
-
 		while (i < len(sendData)):
 			self.Write_MFRC522(self.FIFODataReg, sendData[i])
-			print('Send ->' + str(sendData[i]))
 			i = i + 1
 
-		# Finish with the command
 		self.Write_MFRC522(self.CommandReg, command)
-		print('Send Command ->' + str(command))
 
-		# If we are going to Transceive - do this. Else skip
 		if command == PCD.TRANSCEIVE:
 			self.SetBitMask(self.BitFramingReg, 0x80)
 
@@ -195,31 +190,14 @@ class MFRC522:
 
 		while True:
 			n = self.Read_MFRC522(self.CommIrqReg)  # Listens to the SPI - for data
-
-			if i == 100 * 20:
-				print("Reading - 5")
-			if i == 100 * 15:
-				print("Reading - 4")
-			if i == 100 * 10:
-				print("Reading - 3")
-			if i == 100 * 5:
-				print("Reading - 2")
-			if i == 100 * 0:
-				print("Reading - 1")
-
 			i = i - 1
 
 			if ~((i != 0) and ~(n & 0x01) and ~(n & waitIRq)):  # Acts on data or time out?
-
-				print("Break!")
-
 				break
 
 		self.ClearBitMask(self.BitFramingReg, 0x80)
 
-		print("IF i = 0 -> i =" + str(i))
-
-		if i != 0:  # if we hit 0 - timed out - skip this?
+		if i != 0:
 			if (self.Read_MFRC522(self.ErrorReg) & 0x1B) == 0x00:
 				status = MI.OK
 
@@ -233,6 +211,7 @@ class MFRC522:
 						backLen = (n - 1) * 8 + lastBits
 					else:
 						backLen = n * 8
+
 					if n == 0:
 						n = 1
 					if n > self.MAX_LEN:
@@ -280,22 +259,17 @@ class MFRC522:
 		backData = []
 		serNumCheck = 0
 
-		serNum2 = []
+		serNum = []
 
 		self.Write_MFRC522(self.BitFramingReg, 0x00)
 
 		# Problem is here
-		serNum2.append(PICC.ANTICOLL)
-		serNum2.append(0x20)
+		serNum.append(PICC.ANTICOLL)
+		serNum.append(0x20)
 
-		(status, backData, backBits) = self.MFRC522_ToCard(PCD.TRANSCEIVE, serNum2)
-		print('Status' + str(status))
-		# Problem is here
-
-		print("MFRC522_Anticoll.Status: " + str(status))
+		(status, backData, backBits) = self.MFRC522_ToCard(PCD.TRANSCEIVE, serNum)
 
 		if (status == MI.OK):
-			print("Anti was good - checking")
 			i = 0
 			if len(backData) == 5:
 				while i < 4:

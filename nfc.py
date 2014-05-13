@@ -1,41 +1,44 @@
 # This class is the main interface to MFRC522.py it calls the class and encapsulates the wait and anticollision loop.
 
+import RPi.GPIO as GPIO
 import MFRC522
 import time
+import signal
+
+continue_reading = True
 
 
-def readNfc ():
-	reading = True
-	MIFAREReader = MFRC522
+def end_read (signal, frame):
+	global continue_reading
+	print("Ctrl+C captured, ending read.")
+	continue_reading = False
+	GPIO.cleanup()  # Suggested by Marjan Trutschl
 
-	while reading:
-		print("------ Start of loop -------")
-		# Because we import the "Modual" then access the classes, we but it in a
-		# holder to do work. (No Data types!)
+## INT MAIN CODE ##
 
-		#while continue_reading:
-		(status, TagType) = MIFAREReader.MFRC522.MFRC522_Request(MIFAREReader.MFRC522(), MIFAREReader.PICC.REQIDL)
+signal.signal(signal.SIGINT, end_read)
 
-		if status == 0:  # MI.OK
-			print("REQIDL - OK")
-		if status == 1:
-			print("REQIDL - ARGERR")
-		if status == 2:
-			print("REQIDL - DNC")
+MIFAREReader = MFRC522.MFRC522()
 
-		(status, backData) = MIFAREReader.MFRC522().MFRC522_Anticoll()
+while continue_reading:
+	(status, TagType) = MIFAREReader.MFRC522_Request(MFRC522.PICC.REQIDL)
 
-		if status == 0:
-			print("AntiCol - OK")
-		if status == 1:
-			print("AntiCol - ARGERR")
-		if status == 2:
-			print("AntiCol - DNC")
+	if status == MFRC522.MI.OK:
+		print("Card detected")
 
-		if status == MIFAREReader.MI.OK:
-			MIFAREReader.MFRC522().AntennaOff()
-			print("DATA:" + backData[0]) + str(backData[1]) + str(backData[2]) + str(backData[3]) + str(backData[4])
-			return str(backData[0]) + str(backData[1]) + str(backData[2]) + str(backData[3]) + str(backData[4])
+	(status, backData) = MIFAREReader.MFRC522_Anticoll()
+	if status == MFRC522.MI.OK:
+		print("Card read UID: " + str(backData[0]) + str(backData[1]) + str(backData[2]) + str(backData[3]) + str(
+			backData[
+				4]))
 
-		time.sleep(4)  # so we can see whats going on
+	#key = [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
+
+	#MIFAREReader.MFRC522_SelectTag(backData)
+
+	#status = MIFAREReader.MFRC522_Auth(MIFAREReader.PICC_AUTHENT1A, 11, key, backData)
+	#if status == MIFAREReader.MI_OK:
+	#	print("AUTH OK")
+	#else:
+	#	print("AUTH ERROR")
 
