@@ -1,9 +1,7 @@
 ## Main Program File
 
 import sys  # this if for error handling
-
 import mysqlInterface as mySQL
-
 
 
 ## Local vars
@@ -13,12 +11,10 @@ continueRunning = True
 ###### Device Vars #####
 # Supporting Classes
 class hasNetwork:
-
-
 	LAN = False
-Wireless = False
-Radio3G = False
-RadioLocalMegaHurts = False
+	Wireless = False
+	Radio3G = False
+	RadioLocalMegaHurts = False
 
 # Operational vars
 bootPath = "boot.bst"
